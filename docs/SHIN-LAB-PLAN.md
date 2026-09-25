@@ -44,11 +44,12 @@ bot estable hasta estar probado aquí._
 - [ ] Criterio final de migración: probar con 2 sesiones Baileys reales
       simultáneas en el bot estable.
 
-## E6.3-bis — Filtro de acceso ⏳ PENDIENTE (no documentar en README)
-- [ ] Filtro "para los que sí saben": no cualquiera debe poder crear un
-      sub-bot / acceder a funciones sensibles. Solo usuarios de confianza.
-- [ ] Decisión pendiente del dueño: ¿aplica a sub-bots, a la migración de
-      usuarios, o a ambos?
+## E6.3-bis — Filtro de acceso para sub-bots ⏳ PENDIENTE (no documentar en README)
+- [x] Decisión del dueño (Estrategia A): el filtro aplica SOLO a los
+      sub-bots — solo usuarios de confianza podrán crear un sub-bot;
+      el resto recibe rechazo. (La migración de usuarios NO se filtra.)
+- [ ] Implementación: allowlist de owners autorizados en spawn() +
+      comando owner-only para autorizar (.autorizar-subbot).
 - Nota: apuntado aquí a petición expresa; NO mencionar en el README público.
 
 ## E6.4 — Migrador global.db JSON → SQLite
