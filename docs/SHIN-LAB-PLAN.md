@@ -18,12 +18,17 @@ bot estable hasta estar probado aquí._
 - [ ] Criterio de migración: <5% falsos positivos y <1ms por decisión →
       se integra al router de Shin-MD delante del cooldown.
 
-## E6.2 — Memoria RAG sobre SQLite
-- [ ] Tabla `memories(user_id, fact, ts, weight)` con FTS5.
-- [ ] Extracción de "hechos" por heurística (nombre, gustos, comandos
-      frecuentes) — sin LLM, puro patrón.
-- [ ] API: `remember(ctx)`, `recall(userId)` → texto para el contexto.
-- [ ] Criterio: 10k memorias y recall <10ms.
+## E6.2 — Memoria RAG sobre SQLite ✅ prototipo
+- [x] `experiments/memory/shin-memory.js` — SQLite WAL + FTS5.
+- [x] Extracción de hechos por heurística de alta confianza (nombre,
+      gustos/disgustos, edad, lugar) — sin LLM, con clases Unicode
+      (los acentos del español se procesan bien).
+- [x] API: `remember(userId, text)`, `noteCommand`, `recall(userId, {query})`,
+      `forget`, `stats`. Refuerzo de peso en vez de duplicar.
+- [x] 9 tests pasando, incluyendo benchmark: 10k memorias → recall 0.4ms,
+      búsqueda FTS 0.56ms (criterio del plan: <10ms, cumplido x25).
+- [ ] Pendiente migración: integrarlo al router de Shin-MD con el comando
+      `.memoria` (ver/olvidar) cuando el dueño confirme.
 
 ## E6.3 — Sub-bots aislados por proceso
 - [ ] `jadibot` con `child_process.fork`: cada sub-bot en su proceso.

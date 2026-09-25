@@ -60,7 +60,7 @@
 | # | Experimento | Qué es | Estado |
 |:---|:---|:---|:---|
 | 01 | 🧠 **Shin Brain** (`experiments/brain/`) | Clasificador heurístico anti-spam sin dependencias: decide ALLOW / SLOW / BLOCK con score 0-100 (ráfagas, texto repetido, flood de comandos). Futuro reemplazo del antispam simple. | ✅ Prototipo con 7 tests |
-| 02 | 🗃️ **Memoria RAG** | SQLite FTS5 + embeddings simples: "este usuario siempre pide X". Estilo AIRI pero en 100 líneas. | 🚧 Planeado |
+| 02 | 🗃️ **Memoria RAG** (`experiments/memory/`) | SQLite + FTS5: recuerda nombre, gustos, edad y lugar de cada usuario con heurísticas (sin LLM), refuerza hechos repetidos, búsqueda por texto y `forget()` (derecho al olvido). Benchmark: 10k memorias, recall en **0.4ms** (criterio: <10ms). | ✅ Prototipo con 9 tests |
 | 03 | 🤖 **Sub-bots aislados** | jadibot por proceso (`child_process.fork`): si un sub-bot cae, el main sigue vivo. | 🚧 Planeado |
 | 04 | 🔄 **Migrador de DB** | `global.db` JSON (Gata/Ginko) → SQLite WAL de Shin-MD, en un solo paso. | 🚧 Planeado |
 | 05 | 🏪 **Plugin store** | `.find-skill` + instalador con hash y sandbox. | 💭 Idea |
