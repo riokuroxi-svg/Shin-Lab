@@ -1,4 +1,9 @@
 /**
+ * Shin-Lab - https://github.com/riokuroxi-svg/Shin-Lab
+ * Copyright (C) 2026 riokuroxi-svg
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+/**
  * Shin-Lab — Worker de sub-bot (proceso hijo).
  * En la migración a Shin-MD este archivo arranca una sesión Baileys
  * con su propia auth (sesión aislada). Aquí es un "bot de juguete"

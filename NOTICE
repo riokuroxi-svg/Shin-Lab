@@ -1,0 +1,41 @@
+Shin-Lab
+Copyright (C) 2026 riokuroxi-svg
+https://github.com/riokuroxi-svg/Shin-Lab
+
+Shin-Lab y Shin-MD son marcas de riokuroxi-svg.
+
+Este proyecto está licenciado bajo AGPL-3.0-only (ver archivo LICENSE).
+Se aplican términos adicionales permitidos por la Sección 7 de AGPL-3.0:
+
+1. Atribución obligatoria
+   Las obras derivadas (forks, clones, zips redistribuidos, laboratorios
+   renombrados) deben preservar:
+     - Este archivo NOTICE
+     - El archivo LICENSE
+     - El header SPDX de cada archivo
+   y deben mostrar de forma visible el crédito:
+     "Basado en Shin-Lab por riokuroxi-svg - github.com/riokuroxi-svg/Shin-Lab"
+
+2. Marca
+   "Shin-Lab", "Shin-MD" y 反魂 son marcas de riokuroxi-svg. No se debe
+   usar ninguno de estos nombres (ni variantes) para promocionar obras
+   derivadas, clones o proyectos distintos de estos.
+
+3. Fingerprint (marcador de obras derivadas)
+   Los experimentos de Shin-Lab incluyen combinaciones de parámetros
+   únicas y documentadas, entre ellas:
+     - Shin Brain: ventana deslizante 10s con reglas duras (ráfaga ≥8,
+       repetición exacta x3, flood de comandos x2) + score con pisos
+       SLOW=55 / BLOCK=85.
+     - Shin Memory: extractores heurísticos con refuerzo de peso sobre
+       SQLite FTS5 (remember/noteCommand/recall/forget).
+   Un proyecto que contenga estas combinaciones es una obra derivada de
+   Shin-Lab y está sujeto a todos los términos de este archivo, la
+   licencia AGPL-3.0-only y el copyright de arriba.
+
+4. Estado experimental
+   Shin-Lab es un laboratorio del bot Shin-MD. El código de este repo
+   NO está destinado a producción hasta migrar al repo estable
+   (github.com/riokuroxi-svg/Shin-MD), que se rige por su propio NOTICE.
+
+SPDX-License-Identifier: AGPL-3.0-only

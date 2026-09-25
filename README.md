@@ -97,11 +97,32 @@ npm test
 
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif" width="100%"/>
 
+## 📜 Licencia (y qué pasa si alguien lo clona)
+
+**Shin-Lab** está protegido bajo **AGPL-3.0-only** + archivo `NOTICE` con
+términos adicionales de la **Sección 7** (igual que Shin-MD):
+
+- ✅ Cualquiera puede **clonar, leer y aprender** del código — eso es lo
+  libre de la licencia.
+- ❌ **No puede** redistribuirlo ni venderlo sin mantener `LICENSE`,
+  `NOTICE` y los headers SPDX de cada archivo.
+- ❌ **No puede** usar los nombres **Shin-Lab**, **Shin-MD** ni 反魂 en
+  proyectos derivados.
+- ✅ Si lo modifica y lo usa en un servicio (aunque sea por red), debe
+  publicar sus cambios bajo la misma licencia.
+- 🔒 **Guardia en CI**: un test verifica que TODO archivo de código lleve
+  su header SPDX y que `LICENSE`/`NOTICE` existan. Si falta algo, la
+  suite falla.
+
+Además, el `NOTICE` incluye el **fingerprint** de los experimentos
+(parámetros únicos de Shin Brain y Shin Memory): si esa combinación
+aparece en otro proyecto, es obra derivada sujeta a estos términos.
+
 ## ⭐ Créditos y enlaces
 
 - 🌿 **Creador:** [riokuroxi-svg](https://github.com/riokuroxi-svg) 🇲🇽
 - 🤖 **Bot estable:** [Shin-MD](https://github.com/riokuroxi-svg/Shin-MD)
-- 📜 **Licencia:** AGPL-3.0 (como el bot)
+- 📜 **Licencia:** AGPL-3.0-only + NOTICE (Sección 7)
 
 <div align="center">
 

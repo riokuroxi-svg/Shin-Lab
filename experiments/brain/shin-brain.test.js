@@ -1,4 +1,9 @@
 /**
+ * Shin-Lab - https://github.com/riokuroxi-svg/Shin-Lab
+ * Copyright (C) 2026 riokuroxi-svg
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+/**
  * Shin-Lab — Tests del Experimento 01 (Shin Brain)
  */
 import { test } from "node:test";
