@@ -4,10 +4,15 @@
   "description": "🧪 Laboratorio de Shin-MD — brain local, memoria RAG, sub-bots aislados. Todo se prueba aquí antes de migrar al bot estable.",
   "type": "module",
   "scripts": {
-    "test": "node --test 'experiments/**/*.test.js'"
+    "test": "node --test 'experiments/**/*.test.js' 'experiments/**/*.test.ts'",
+    "check:types": "tsc -p experiments/typescript/tsconfig.json"
   },
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=22.18.0"
   },
-  "license": "AGPL-3.0-only"
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  }
 }

@@ -63,7 +63,8 @@
 | 02 | 🗃️ **Memoria RAG** (`experiments/memory/`) | SQLite + FTS5: recuerda nombre, gustos, edad y lugar de cada usuario con heurísticas (sin LLM), refuerza hechos repetidos, búsqueda por texto y `forget()` (derecho al olvido). Benchmark: 10k memorias, recall en **0.4ms** (criterio: <10ms). | ✅ Prototipo con 9 tests |
 | 03 | 🤖 **Sub-bots aislados** (`experiments/subbots/`) | Cada sub-bot en su propio proceso (`fork` + IPC JSON). Respawn automático con límite, `killAll` limpia sin zombies, y matar un sub-bot no afecta al resto ni al main. | ✅ Prototipo con 7 tests |
 | 04 | 🔄 **Migrador de DB** | `global.db` JSON (Gata/Ginko) → SQLite WAL de Shin-MD, en un solo paso. | 🚧 Planeado |
-| 05 | 🏪 **Plugin store** | `.find-skill` + instalador con hash y sandbox. | 💭 Idea |
+| 05 | 📘 **Evaluación TypeScript** (`experiments/typescript/`) | ¿Vale la pena TS en Shin-MD? Port tipado de la cola, corrido NATIVO en Node 22.18+ sin dependencias. Veredicto: sí, migración gradual ([TS-VERDICT](docs/TS-VERDICT.md)). | ✅ Evaluado |
+| 06 | 🏪 **Plugin store** | `.find-skill` + instalador con hash y sandbox. | 💭 Idea |
 
 ## 🔄 Flujo de trabajo
 

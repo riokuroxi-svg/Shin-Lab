@@ -58,10 +58,14 @@ bot estable hasta estar probado aquí._
 - [ ] Renombra el origen a `.bak` (nunca se vuelve a leer).
 - [ ] Criterio: migrar 50MB de JSON en <5s sin perder usuarios.
 
-## E6.5 — Evaluación TypeScript en el core
-- [ ] PRUEBA primero: migrar `queue.js` a TS con tsx y medir si el
-      beneficio (tipos en la cola) justifica el costo en Termux.
-- [ ] Veredicto documentado aquí, se migre o no.
+## E6.5 — Evaluación TypeScript en el core ✅ EVALUADO
+- [x] Port tipado de `queue.js` a TS NATIVO (sin tsx: Node ≥22.18 hace
+      type stripping solo) — 6/6 tests, sobrecosto ~50ms solo al arrancar.
+- [x] `tsc --strict` atrapa 5/5 bugs realistas inyectados (typos en opts,
+      interfaces incompletas, tipos equivocados).
+- [x] Veredicto completo: `docs/TS-VERDICT.md` — **sí vale la pena, con
+      migración gradual** (los módulos nuevos nacen .ts; nada de big-bang).
+      Requisito para migrar: engines ≥22.18.
 
 ## E6.6 — Plugin store (`.find-skill`)
 - [ ] Índice JSON en este repo: nombre, hash SHA256, URL.
