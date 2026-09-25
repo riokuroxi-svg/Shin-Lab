@@ -97,6 +97,18 @@ npm test
 
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif" width="100%"/>
 
+## 🕵️ Auditoría (2026-09-25)
+
+El laboratorio también fue atacado desde un clon fresco:
+
+| Prueba | Resultado |
+|---|---|
+| Clon fresco + `npm install` + suite completa | ✅ 40/40 tests |
+| Plugin store: código alterado, fuera de índice, `require('child_process')`, `process.exit`, loop infinito | ✅ todos bloqueados (sandbox + hash SHA-256) |
+| Memoria RAG: 7 intentos de inyección SQL/FTS5 | ✅ resistidos, datos intactos |
+| Brain: entradas de 100KB, vacías y nulas | ✅ sin crash |
+| Licencia: todos los archivos con header SPDX + `LICENSE` + `NOTICE` | ✅ verificado por test en CI |
+
 ## 📜 Licencia (y qué pasa si alguien lo clona)
 
 **Shin-Lab** está protegido bajo **AGPL-3.0-only** + archivo `NOTICE` con
