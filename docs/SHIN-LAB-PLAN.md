@@ -30,11 +30,26 @@ bot estable hasta estar probado aquí._
 - [ ] Pendiente migración: integrarlo al router de Shin-MD con el comando
       `.memoria` (ver/olvidar) cuando el dueño confirme.
 
-## E6.3 — Sub-bots aislados por proceso
-- [ ] `jadibot` con `child_process.fork`: cada sub-bot en su proceso.
-- [ ] Protocolo de mensajes main↔sub (JSON por IPC).
-- [ ] Si un sub-bot crashea: el main avisa al dueño y lo re-lanza (máx 3).
-- [ ] Criterio: matar el sub-bot a mano no afecta al main.
+## E6.3 — Sub-bots aislados por proceso ✅ prototipo
+- [x] `experiments/subbots/subbot-manager.js` — gestor con
+      `child_process.fork`: cada sub-bot en su proceso, IPC JSON
+      (start/ready/echo/reply/crash/stop).
+- [x] Protocolo y worker demo (`subbot-worker.js`); en la migración el
+      worker arranca una sesión Baileys con auth propia.
+- [x] Respawn automático con límite (evento `gave-up`), kill manual sin
+      respawn, `killAll` que cancela respawns pendientes (bug real cazado:
+      un respawn diferido resucitaba zombies y colgaba la suite).
+- [x] 7 tests pasando: handshake, IPC, kill, crash→respawn, límite de
+      respawns, aislamiento entre sub-bots, duplicados.
+- [ ] Criterio final de migración: probar con 2 sesiones Baileys reales
+      simultáneas en el bot estable.
+
+## E6.3-bis — Filtro de acceso ⏳ PENDIENTE (no documentar en README)
+- [ ] Filtro "para los que sí saben": no cualquiera debe poder crear un
+      sub-bot / acceder a funciones sensibles. Solo usuarios de confianza.
+- [ ] Decisión pendiente del dueño: ¿aplica a sub-bots, a la migración de
+      usuarios, o a ambos?
+- Nota: apuntado aquí a petición expresa; NO mencionar en el README público.
 
 ## E6.4 — Migrador global.db JSON → SQLite
 - [ ] Script standalone: lee `database.json`/`global.db.json` de
