@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "updated": "2026-09-25",
+  "note": "Índice confiable de plugins de Shin-Lab. Un plugin solo se instala si su SHA-256 coincide con lo declarado aquí.",
+  "plugins": {
+    "fortuna": {
+      "sha256": "5c7a01d4942733121312d3d8b542207cf9623aceea7b5340090d0c48dbf2b788",
+      "version": "1.0.0",
+      "description": "Te dice tu fortuna del día 🔮",
+      "author": "riokuroxi-svg",
+      "source": "experiments/store/plugins/fortune.js"
+    }
+  }
+}

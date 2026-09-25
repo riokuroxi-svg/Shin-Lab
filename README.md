@@ -64,7 +64,7 @@
 | 03 | 🤖 **Sub-bots aislados** (`experiments/subbots/`) | Cada sub-bot en su propio proceso (`fork` + IPC JSON). Respawn automático con límite, `killAll` limpia sin zombies, y matar un sub-bot no afecta al resto ni al main. | ✅ Prototipo con 7 tests |
 | 04 | 🔄 **Migrador de DB** | `global.db` JSON (Gata/Ginko) → SQLite WAL de Shin-MD, en un solo paso. | 🚧 Planeado |
 | 05 | 📘 **Evaluación TypeScript** (`experiments/typescript/`) | ¿Vale la pena TS en Shin-MD? Port tipado de la cola, corrido NATIVO en Node 22.18+ sin dependencias. Veredicto: sí, migración gradual ([TS-VERDICT](docs/TS-VERDICT.md)). | ✅ Evaluado |
-| 06 | 🏪 **Plugin store** | `.find-skill` + instalador con hash y sandbox. | 💭 Idea |
+| 06 | 🏪 **Plugin store** (`experiments/store/`) | Índice confiable con SHA-256 + instalador en sandbox (sin `require`/`process`/red). Ataques probados y bloqueados: hash alterado, `child_process`, loop infinito. | ✅ Prototipo con 9 tests |
 
 ## 🔄 Flujo de trabajo
 

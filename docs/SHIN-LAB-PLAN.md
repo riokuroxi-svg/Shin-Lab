@@ -67,10 +67,18 @@ bot estable hasta estar probado aquí._
       migración gradual** (los módulos nuevos nacen .ts; nada de big-bang).
       Requisito para migrar: engines ≥22.18.
 
-## E6.6 — Plugin store (`.find-skill`)
-- [ ] Índice JSON en este repo: nombre, hash SHA256, URL.
-- [ ] Instalador: descarga → verifica hash → sandbox vm → registra.
-- [ ] Solo cuando E6.3 esté estable.
+## E6.6 — Plugin store (`.find-skill`) ✅ prototipo
+- [x] `experiments/store/plugin-index.json` — índice confiable: cada
+      plugin con su SHA-256, versión y autor.
+- [x] `experiments/store/plugin-loader.js` — verify (hash) + install
+      (sandbox vm SIN require/process/red, timeout de carga) + run
+      (timeout de ejecución de 5s) + list/find por alias.
+- [x] Plugin demo oficial (`.fortuna`) y 9 tests, incluidos los ataques:
+      código alterado, plugin fuera de índice, `require('child_process')`,
+      `process.exit`, loop infinito y plugin incompleto. Todos bloqueados.
+- [ ] Límite documentado: vm no es frontera dura; la defensa real es
+      hash + aprobación del owner. Al migrar a Shin-MD: descarga por URL
+      con hash del índice y comando `.find-skill`.
 
 ## Orden y prioridades
 
