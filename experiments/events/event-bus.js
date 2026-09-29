@@ -97,6 +97,10 @@ export class EventBus {
    * @param {any} payload
    * @returns {Promise<{ delivered: number, errors: Array<{ error: string, subscriberId: number }> }>}
    */
+  async publish(topic, payload) {
+    return this.emit(topic, payload);
+  }
+
   async emit(topic, payload) {
     const cleanTopic = String(topic || "").trim();
     const timestamp = Date.now();

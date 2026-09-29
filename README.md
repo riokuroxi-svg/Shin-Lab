@@ -68,6 +68,7 @@
 | 07 | 🛡️ **Declarative Tools & CAI Guardrails** (`experiments/tools/`) | Registry declarativo de Tools (JSON Schema) para Agentes + defensas contra prompt injection, command injection (CVE-2025-67511), evasión de privilegios y exfiltración de secretos (metodología Alias Robotics CAI). | ✅ Prototipo con 8 tests |
 | 08 | ⚡ **Agent Pipeline (Brain + Memoria + Tools)** (`experiments/brain/agent-pipeline.js`) | Flujo B5 completo: Input Guardrails ➔ Anti-spam ➔ Contexto Memoria FTS5 ➔ Enrutador de Intenciones / Comandos ➔ Ejecución con Guardrails RBAC. | ✅ Prototipo con 6 tests |
 | 09 | 📡 **Event Bus Pub/Sub & Coordinador** (`experiments/events/`) | Bloque B7: Bus de eventos asíncrono con wildcards (`*`, `#`), prioridades, aislamiento de fallos y coordinación reactiva entre Agentes y Memoria SQLite RAG. | ✅ Prototipo con 6 tests |
+| 10 | 🔌 **Abstracción de Motor IWhatsAppEngine** (`experiments/engine/`) | Bloque B8: Capa de desacoplamiento agnóstica de transporte (Baileys / Whatsmeow bridge / Mock), con normalización bidireccional LID/PN y auditoría de motores 2026 ([ENGINE-DECISION](docs/ENGINE-DECISION.md)). | ✅ Prototipo con 7 tests |
 
 ## 🔄 Flujo de trabajo
 
