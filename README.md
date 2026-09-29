@@ -69,6 +69,7 @@
 | 08 | ⚡ **Agent Pipeline (Brain + Memoria + Tools)** (`experiments/brain/agent-pipeline.js`) | Flujo B5 completo: Input Guardrails ➔ Anti-spam ➔ Contexto Memoria FTS5 ➔ Enrutador de Intenciones / Comandos ➔ Ejecución con Guardrails RBAC. | ✅ Prototipo con 6 tests |
 | 09 | 📡 **Event Bus Pub/Sub & Coordinador** (`experiments/events/`) | Bloque B7: Bus de eventos asíncrono con wildcards (`*`, `#`), prioridades, aislamiento de fallos y coordinación reactiva entre Agentes y Memoria SQLite RAG. | ✅ Prototipo con 6 tests |
 | 10 | 🔌 **Abstracción de Motor IWhatsAppEngine** (`experiments/engine/`) | Bloque B8: Capa de desacoplamiento agnóstica de transporte (Baileys / Whatsmeow bridge / Mock), con normalización bidireccional LID/PN y auditoría de motores 2026 ([ENGINE-DECISION](docs/ENGINE-DECISION.md)). | ✅ Prototipo con 7 tests |
+| 11 | 🎯 **Batería Red-Teaming CAI & Auditoría** (`experiments/tools/cai-redteam.test.js`) | Pruebas de penetración contra inyecciones de homóglifos, evasión de roles, CVE-2025-67511, DoS y fuga de secretos ([REDTEAM-CAI-AUDIT](docs/REDTEAM-CAI-AUDIT.md)). | ✅ Prototipo con 9 tests |
 
 ## 🔄 Flujo de trabajo
 

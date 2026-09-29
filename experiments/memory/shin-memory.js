@@ -148,13 +148,14 @@ export function createMemory(opts) {
     opts = opts || {};
     const limit = Math.min(opts.limit ?? 8, 50);
     let rows;
-    if (opts.query && hasFts) {
+    const ftsQuery = opts.query ? sanitizeFts(opts.query) : "";
+    if (opts.query && hasFts && ftsQuery) {
       rows = db.prepare(`
         SELECT m.user_id, m.kind, m.fact, m.weight
         FROM memories_fts f JOIN memories m ON m.id = f.rowid
         WHERE memories_fts MATCH ? AND m.user_id = ?
         ORDER BY m.weight DESC LIMIT ?
-      `).all(sanitizeFts(opts.query), String(userId), limit);
+      `).all(ftsQuery, String(userId), limit);
     } else if (opts.query) {
       const pat = "%" + String(opts.query).replace(/[%_]/g, "") + "%";
       rows = db.prepare(`
@@ -182,7 +183,9 @@ export function createMemory(opts) {
 
   function sanitizeFts(q) {
     // FTS5 solo acepta tokens simples: limpiamos todo lo especial.
-    return String(q).replace(/[^\p{L}\p{N}\s]/gu, " ").trim().split(/\s+/).map(t => `"${t}"`).join(" OR ");
+    const tokens = String(q || "").replace(/[^\p{L}\p{N}\s]/gu, " ").trim().split(/\s+/).filter(Boolean);
+    if (!tokens.length) return "";
+    return tokens.map(t => `"${t}"`).join(" OR ");
   }
 
   /** forget(userId) → borra TODO lo que sabe de un usuario (derecho al olvido). */

@@ -16,6 +16,8 @@ export class EventBus {
     this.maxListenersPerTopic = opts.maxListenersPerTopic || 50;
     this.subscribers = new Map(); // topicPattern → Array<{ handler, priority, once, id }>
     this._subIdSeq = 0;
+    this.maxDepth = opts.maxDepth || 32;
+    this._currentDepth = 0;
   }
 
   /**
@@ -102,52 +104,64 @@ export class EventBus {
   }
 
   async emit(topic, payload) {
-    const cleanTopic = String(topic || "").trim();
-    const timestamp = Date.now();
-    const eventMeta = { topic: cleanTopic, timestamp };
+    if (this._currentDepth >= (this.maxDepth || 32)) {
+      return {
+        delivered: 0,
+        errors: [{ error: "EventBus recursion limit exceeded (cascade protection)", subscriberId: 0 }],
+      };
+    }
 
-    const matchingHandlers = [];
-    const toRemove = [];
+    this._currentDepth = (this._currentDepth || 0) + 1;
+    try {
+      const cleanTopic = String(topic || "").trim();
+      const timestamp = Date.now();
+      const eventMeta = { topic: cleanTopic, timestamp };
 
-    for (const [pattern, list] of this.subscribers.entries()) {
-      for (const entry of list) {
-        if (entry.regex.test(cleanTopic)) {
-          matchingHandlers.push({ pattern, entry });
-          if (entry.once) {
-            toRemove.push({ pattern, id: entry.id });
+      const matchingHandlers = [];
+      const toRemove = [];
+
+      for (const [pattern, list] of this.subscribers.entries()) {
+        for (const entry of list) {
+          if (entry.regex.test(cleanTopic)) {
+            matchingHandlers.push({ pattern, entry });
+            if (entry.once) {
+              toRemove.push({ pattern, id: entry.id });
+            }
           }
         }
       }
-    }
 
-    // Limpiar 'once'
-    for (const { pattern, id } of toRemove) {
-      this.offById(pattern, id);
-    }
-
-    // Ordenar todos los ejecutores por prioridad
-    matchingHandlers.sort((a, b) => b.entry.priority - a.entry.priority);
-
-    const errors = [];
-    let delivered = 0;
-
-    const executions = matchingHandlers.map(async ({ entry }) => {
-      try {
-        await Promise.race([
-          entry.handler(payload, eventMeta),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout de handler (5000ms)")), 5000)),
-        ]);
-        delivered++;
-      } catch (err) {
-        errors.push({
-          error: String(err?.message || err),
-          subscriberId: entry.id,
-        });
+      // Limpiar 'once'
+      for (const { pattern, id } of toRemove) {
+        this.offById(pattern, id);
       }
-    });
 
-    await Promise.all(executions);
-    return { delivered, errors };
+      // Ordenar todos los ejecutores por prioridad
+      matchingHandlers.sort((a, b) => b.entry.priority - a.entry.priority);
+
+      const errors = [];
+      let delivered = 0;
+
+      const executions = matchingHandlers.map(async ({ entry }) => {
+        try {
+          await Promise.race([
+            entry.handler(payload, eventMeta),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout de handler (5000ms)")), 5000)),
+          ]);
+          delivered++;
+        } catch (err) {
+          errors.push({
+            error: String(err?.message || err),
+            subscriberId: entry.id,
+          });
+        }
+      });
+
+      await Promise.all(executions);
+      return { delivered, errors };
+    } finally {
+      this._currentDepth--;
+    }
   }
 
   /**

@@ -19,12 +19,18 @@ const PROMPT_INJECTION_PATTERNS = [
   /\b(?:you\s+are\s+now|act\s+as)\s+(?:an?\s+unconstrained|unfiltered|evil|root|admin\s+bot)\b/i,
   /\b(?:bypass\s+security|reveal\s+(?:all\s+)?(?:secrets|tokens|env|keys|passwords))\b/i,
   /\b(?:sudo\s+execute|system_prompt_override)\b/i,
+  /<\s*\/?\s*(?:system|inst|sys|admin|root)[^>]*>/i,
+  /\[(?:SYSTEM|INST|SYS|ADMIN|ROOT)\]/i,
+  /<<SYS>>/i,
+  /\{"role"\s*:\s*"system"/i,
 ];
 
 const SHELL_INJECTION_PATTERNS = [
-  /[;&|`$<>]/,
-  /\b(?:cat|rm|mv|cp|curl|wget|bash|sh|exec|eval|node|python|perl)\s+/i,
-  /\.\.\/|\.\.\\/, // Path traversal
+  /[;&|`$<>\0\r\n]/,
+  /\$\([^\)]*\)/,      // Subshells $(whoami)
+  /\$\{[^\}]*\}/,      // Variable expansions ${IFS}
+  /\b(?:cat|rm|mv|cp|curl|wget|bash|sh|exec|eval|node|python|perl|nc|sudo|chmod|chown)\b/i,
+  /\.\.\/|\.\.\\/,     // Path traversal
 ];
 
 const SECRET_PATTERNS = [
@@ -33,19 +39,57 @@ const SECRET_PATTERNS = [
   /-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----/,
   /eyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}/, // JWT
   /(?:password|secret|apikey|api_key)\s*[:=]\s*["']?[^\s"']{8,}["']?/i,
+  /AIza[0-9A-Za-z-_]{35}/, // Google API Keys
 ];
+
+// Mapa de Homóglifos comunes (Cirílico/Griego -> Latino)
+const HOMOGLYPH_MAP = {
+  '\u0430': 'a', '\u0410': 'A', // а -> a
+  '\u0435': 'e', '\u0415': 'E', // е -> e
+  '\u043E': 'o', '\u041E': 'O', // о -> o
+  '\u0440': 'p', '\u0420': 'P', // р -> p
+  '\u0441': 'c', '\u0421': 'C', // с -> c
+  '\u0443': 'y', '\u0423': 'Y', // у -> y
+  '\u0445': 'x', '\u0425': 'X', // х -> x
+  '\u0456': 'i', '\u0406': 'I', // і -> i
+  '\u0458': 'j', '\u0408': 'J', // ј -> j
+  '\u0455': 's', '\u0405': 'S', // ѕ -> s
+  '\u03BF': 'o', '\u039F': 'O', // Greek omicron
+  '\u03B1': 'a', '\u0391': 'A', // Greek alpha
+  '\u03B5': 'e', '\u0395': 'E', // Greek epsilon
+};
 
 // ── 2. Guardrails Engine ──────────────────────────────────────────
 export class Guardrails {
   /**
-   * Normaliza texto eliminando caracteres invisibles y homóglifos comunes.
+   * Normaliza texto eliminando caracteres invisibles, decodificando URLs/Hex y reemplazando homóglifos.
    */
   static normalizeText(str) {
     if (typeof str !== "string") return "";
     // Eliminar caracteres invisibles/zero-width
-    let clean = str.replace(/[\u200B-\u200D\uFEFF]/g, "");
+    let clean = str.replace(/[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E]/g, "");
+
     // Normalizar unicode a forma canónica (NFKC)
-    return clean.normalize("NFKC").trim();
+    clean = clean.normalize("NFKC");
+
+    // Reemplazo de homóglifos conocidos
+    let dehomoglyph = "";
+    for (const char of clean) {
+      dehomoglyph += HOMOGLYPH_MAP[char] || char;
+    }
+    clean = dehomoglyph;
+
+    // Intentar decodificar URL percent-encoding (ej: %69%67%6e%6f%72%65)
+    try {
+      if (/%[0-9a-fA-F]{2}/.test(clean)) {
+        clean = decodeURIComponent(clean);
+      }
+    } catch {}
+
+    // Intentar decodificar Hex escapes (ej: \x69\x67)
+    clean = clean.replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+
+    return clean.trim();
   }
 
   /**
@@ -67,8 +111,9 @@ export class Guardrails {
     for (const b64 of b64Matches) {
       try {
         const decoded = Buffer.from(b64, "base64").toString("utf8");
+        const normDecoded = this.normalizeText(decoded);
         for (const pat of PROMPT_INJECTION_PATTERNS) {
-          if (pat.test(decoded)) {
+          if (pat.test(normDecoded)) {
             reasons.push("Inyección de prompt oculta en Base64");
             break;
           }
@@ -87,6 +132,12 @@ export class Guardrails {
    */
   static validateParamSecurity(value, paramName, schema) {
     if (value == null) return { isSafe: true };
+
+    // Protección anti-Prototype Pollution
+    if (paramName === "__proto__" || paramName === "constructor" || paramName === "prototype") {
+      return { isSafe: false, reason: `Parámetro prohibido por seguridad (Prototype Pollution): '${paramName}'` };
+    }
+
     const strVal = String(value);
 
     // Si el esquema exige un formato seguro específico (alfanumérico, JID, etc.)
