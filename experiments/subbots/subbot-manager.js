@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 // ═══════════════════════════════════════════════════════════════════
-//  EXPERIMENTO 03 — Sub-bots aislados por proceso
-//  Cada sub-bot vive en su propio child_process.fork con su propia
-//  sesión. Si uno crashea: se re-lanza solo (hasta N veces) y el
-//  main ni se inmuta. Protocolo IPC en JSON. En la migración a
-//  Shin-MD, el worker se convierte en una sesión Baileys real.
-//  Criterio del plan: matar un sub-bot a mano no afecta al main.
+//  EXPERIMENTO 03/06-bis — Sub-bots aislados con Contrato de Permisos
+//  Cada sub-bot vive en su propio child_process.fork con ACLs:
+//   - Capability Matrix: categorías permitidas, lista blanca/negra de tools.
+//   - Risk Gate: límite máximo de nivel de riesgo (low/medium/high/critical).
+//   - Data Isolation: permisos explícitos sobre DB maestra y memoria.
+//   - Rate Limiter por sub-bot: cuota de operaciones por minuto.
 // ═══════════════════════════════════════════════════════════════════
 import { fork } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -20,22 +20,42 @@ const DEFAULT_WORKER = path.join(
   "subbot-worker.js"
 );
 
+const RISK_LEVELS = {
+  low: 1,
+  medium: 2,
+  high: 3,
+  critical: 4,
+};
+
+export const DEFAULT_CAPABILITIES = {
+  allowedCategories: ["utility", "fun", "general", "economy"],
+  allowedTools: ["*"],
+  deniedTools: ["exec", "eval", "shutdown", "kick_user", "system_override", "admin_shutdown"],
+  maxRisk: "medium",
+  dataAccess: {
+    readMemory: true,
+    writeMemory: true,
+    readMasterDb: false,
+    writeMasterDb: false,
+  },
+  maxOpsPerMinute: 60,
+};
+
 export function createSubBotManager(opts) {
   opts = opts || {};
   const workerScript = opts.workerScript || DEFAULT_WORKER;
   const maxRestarts = opts.maxRestarts ?? 3;
-  const subs = new Map();   // id → { proc, cfg, restarts, state, intentional }
+  const subs = new Map();   // id → { proc, cfg, restarts, state, intentional, ops: [] }
   const listeners = [];
-  const pendingRespawns = new Set(); // timers de respawn aún no disparados
+  const pendingRespawns = new Set();
 
   function emit(id, type, data) {
     const ev = { id, type, ...(data || {}) };
     for (const fn of listeners) {
-      try { fn(ev); } catch { /* un listener roto no tumba al manager */ }
+      try { fn(ev); } catch {}
     }
   }
 
-  /** onEvent(fn) → suscribirse a eventos { id, type, ... }. Devuelve unsubscribe. */
   function onEvent(fn) {
     listeners.push(fn);
     return () => {
@@ -44,21 +64,126 @@ export function createSubBotManager(opts) {
     };
   }
 
+  /**
+   * Evalúa si una acción solicitada cumple con el contrato de capacidades del sub-bot.
+   */
+  function checkCapability(id, req) {
+    const entry = subs.get(String(id));
+    if (!entry) return { allowed: false, code: "ERR_SUBBOT_NOT_FOUND", reason: "Sub-bot no existe o no está activo." };
+
+    const caps = {
+      ...DEFAULT_CAPABILITIES,
+      ...(entry.cfg.capabilities || {}),
+      dataAccess: {
+        ...DEFAULT_CAPABILITIES.dataAccess,
+        ...(entry.cfg.capabilities?.dataAccess || {}),
+      },
+    };
+
+    // 1. Rate Limiter por sub-bot
+    const now = Date.now();
+    entry.ops = (entry.ops || []).filter(t => now - t < 60000);
+    if (entry.ops.length >= caps.maxOpsPerMinute) {
+      return {
+        allowed: false,
+        code: "ERR_RATE_LIMIT_EXCEEDED",
+        reason: `Cuota de operaciones excedida (${caps.maxOpsPerMinute} ops/minuto).`,
+      };
+    }
+    entry.ops.push(now);
+
+    // 2. Control de Acceso a Tools
+    if (req.type === "tool") {
+      const toolName = (req.name || "").toLowerCase().trim();
+      const category = (req.category || "general").toLowerCase().trim();
+      const risk = (req.risk || "low").toLowerCase().trim();
+
+      // Lista negra explícita
+      if (caps.deniedTools.includes(toolName)) {
+        return {
+          allowed: false,
+          code: "ERR_TOOL_DENIED",
+          reason: `La tool '${toolName}' está explícitamente prohibida para este sub-bot.`,
+        };
+      }
+
+      // Lista blanca de herramientas
+      if (!caps.allowedTools.includes("*") && !caps.allowedTools.includes(toolName)) {
+        return {
+          allowed: false,
+          code: "ERR_TOOL_NOT_WHITELISTED",
+          reason: `La tool '${toolName}' no está autorizada en la lista permitida.`,
+        };
+      }
+
+      // Categoría permitida
+      if (!caps.allowedCategories.includes("*") && !caps.allowedCategories.includes(category)) {
+        return {
+          allowed: false,
+          code: "ERR_CATEGORY_UNAUTHORIZED",
+          reason: `La categoría '${category}' no está permitida para este sub-bot.`,
+        };
+      }
+
+      // Límite de nivel de riesgo
+      const toolRiskScore = RISK_LEVELS[risk] || 1;
+      const maxRiskScore = RISK_LEVELS[caps.maxRisk] || 2;
+      if (toolRiskScore > maxRiskScore) {
+        return {
+          allowed: false,
+          code: "ERR_RISK_LIMIT_EXCEEDED",
+          reason: `Nivel de riesgo '${risk}' excede el límite permitido ('${caps.maxRisk}').`,
+        };
+      }
+    }
+
+    // 3. Control de Acceso a Datos (Data Access Layer)
+    if (req.type === "data") {
+      if (req.target === "masterDb") {
+        if (req.action === "write" && !caps.dataAccess.writeMasterDb) {
+          return {
+            allowed: false,
+            code: "ERR_DATA_ACCESS_DENIED",
+            reason: "Escritura no autorizada en la base de datos maestra.",
+          };
+        }
+        if (req.action === "read" && !caps.dataAccess.readMasterDb) {
+          return {
+            allowed: false,
+            code: "ERR_DATA_ACCESS_DENIED",
+            reason: "Lectura no autorizada en la base de datos maestra.",
+          };
+        }
+      }
+    }
+
+    return { allowed: true };
+  }
+
   function start(id, cfg, restartCount) {
     const proc = fork(workerScript, [], {
       stdio: ["ignore", "ignore", "ignore", "ipc"],
       env: { ...process.env, SUBBOT_ID: id },
     });
-    const entry = { proc, cfg, restarts: restartCount, state: "starting", intentional: false };
+    const entry = { proc, cfg, restarts: restartCount, state: "starting", intentional: false, ops: [] };
     subs.set(id, entry);
 
     proc.on("message", (msg) => {
       if (!msg || typeof msg !== "object") return;
       if (msg.type === "ready") {
         entry.state = "running";
-        emit(id, "ready", { pid: proc.pid });
+        emit(id, "ready", { pid: proc.pid, capabilities: msg.capabilities });
+      } else if (msg.type === "request_action") {
+        const check = checkCapability(id, msg.action || {});
+        if (!check.allowed) {
+          emit(id, "security_violation", { action: msg.action, error: check.reason, code: check.code, requestId: msg.requestId });
+          proc.send({ type: "action_rejected", requestId: msg.requestId, error: check.reason, code: check.code });
+        } else {
+          emit(id, "action_authorized", { action: msg.action, requestId: msg.requestId });
+          proc.send({ type: "action_granted", requestId: msg.requestId });
+        }
       } else {
-        emit(id, msg.type || "message", { payload: msg.payload ?? msg });
+        emit(id, msg.type || "message", msg);
       }
     });
 
@@ -67,9 +192,9 @@ export function createSubBotManager(opts) {
     proc.on("exit", (code, signal) => {
       subs.delete(id);
       emit(id, "exit", { code, signal });
-      if (entry.intentional) return;              // kill a mano → no revive
+      if (entry.intentional) return;
       const crashed = code !== 0 || signal;
-      if (!crashed) return;                       // salida limpia → adiós
+      if (!crashed) return;
       if (restartCount < maxRestarts) {
         const attempt = restartCount + 1;
         emit(id, "respawn", { attempt, inMs: 50 * attempt });
@@ -83,14 +208,10 @@ export function createSubBotManager(opts) {
       }
     });
 
-    try { proc.send({ type: "start", id, config: cfg || {} }); } catch { /* ya murió */ }
+    try { proc.send({ type: "start", id, config: cfg || {} }); } catch {}
     return { ok: true, id, pid: proc.pid };
   }
 
-  /**
-   * spawn(id, cfg?) → arranca un sub-bot. Devuelve { ok } o { ok:false, error }.
-   * cfg.owner se registra para el futuro filtro de permisos (E6.3-bis).
-   */
   function spawn(id, cfg) {
     id = String(id ?? "");
     if (!id) return { ok: false, error: "falta id" };
@@ -98,30 +219,26 @@ export function createSubBotManager(opts) {
     return start(id, cfg || {}, 0);
   }
 
-  /** send(id, msg) → mensaje IPC al sub-bot. false si no existe/está muerto. */
   function send(id, msg) {
     const e = subs.get(String(id));
     if (!e || !e.proc.connected) return false;
     try { e.proc.send(msg); return true; } catch { return false; }
   }
 
-  /** kill(id) → mata el sub-bot SIN respawn (salida intencional). */
   function kill(id) {
     const e = subs.get(String(id));
     if (!e) return false;
     e.intentional = true;
-    try { e.proc.kill("SIGTERM"); } catch { /* ya murió */ }
+    try { e.proc.kill("SIGTERM"); } catch {}
     return true;
   }
 
-  /** list() → [{ id, state, restarts, pid }] de los sub-bots vivos. */
   function list() {
     return [...subs.entries()].map(([id, e]) => ({
-      id, state: e.state, restarts: e.restarts, pid: e.proc.pid,
+      id, state: e.state, restarts: e.restarts, pid: e.proc.pid, capabilities: e.cfg?.capabilities || DEFAULT_CAPABILITIES,
     }));
   }
 
-  /** killAll() → apaga todos y CANCELA respawns pendientes (espera hasta timeoutMs). */
   async function killAll(timeoutMs) {
     for (const t of pendingRespawns) clearTimeout(t);
     pendingRespawns.clear();
@@ -131,12 +248,11 @@ export function createSubBotManager(opts) {
     while (subs.size > 0 && Date.now() < limit) {
       await new Promise(r => setTimeout(r, 20));
     }
-    // si alguno se quedó colgado, SIGKILL directo
-    for (const e of subs.values()) { try { e.proc.kill("SIGKILL"); } catch { /* ok */ } }
+    for (const e of subs.values()) { try { e.proc.kill("SIGKILL"); } catch {} }
     subs.clear();
   }
 
-  return { spawn, send, kill, list, killAll, onEvent };
+  return { spawn, send, kill, list, killAll, onEvent, checkCapability };
 }
 
 export default createSubBotManager;
