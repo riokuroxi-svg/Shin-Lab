@@ -102,16 +102,33 @@ npm test
 
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif" width="100%"/>
 
-## 🕵️ Auditoría (2026-09-25)
+## 📚 Documentación Técnica de Arquitectura
 
-El laboratorio también fue atacado desde un clon fresco:
+Todos los documentos de diseño, veredictos técnicos y auditorías se encuentran en [`docs/`](docs/):
+
+| Documento | Descripción |
+|:---|:---|
+| 🛡️ [**REDTEAM-CAI-AUDIT.md**](docs/REDTEAM-CAI-AUDIT.md) | Informe de auditoría Red-Team (metodología Alias Robotics CAI), pruebas contra inyección de prompt, evasión de roles, CVE-2025-67511 y mitigación de DoS. |
+| 🔌 [**ENGINE-DECISION.md**](docs/ENGINE-DECISION.md) | Auditoría comparativa de motores de WhatsApp 2026 (Baileys vs Whatsmeow Go vs Meta Cloud API) y especificación de `IWhatsAppEngine`. |
+| 🤖 [**AGENT-FRAMEWORK-VISION.md**](docs/AGENT-FRAMEWORK-VISION.md) | Visión de Shin-Core como framework local-first de Agentes Autónomos con memoria semántica y anti-ban. |
+| 📘 [**TS-VERDICT.md**](docs/TS-VERDICT.md) | Evaluación del soporte TypeScript nativo en Node 22.18+ sin herramientas de compilación externas. |
+| 🗺️ [**SHIN-LAB-PLAN.md**](docs/SHIN-LAB-PLAN.md) | Hoja de ruta por bloques de desarrollo y experimentos. |
+
+<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif" width="100%"/>
+
+## 🕵️ Auditoría y Batería de Pruebas (2026-09-29)
+
+El laboratorio es evaluado continuamente con pruebas unitarias, de integración y de seguridad adversarial:
 
 | Prueba | Resultado |
 |---|---|
-| Clon fresco + `npm install` + suite completa | ✅ 40/40 tests |
-| Plugin store: código alterado, fuera de índice, `require('child_process')`, `process.exit`, loop infinito | ✅ todos bloqueados (sandbox + hash SHA-256) |
-| Memoria RAG: 7 intentos de inyección SQL/FTS5 | ✅ resistidos, datos intactos |
-| Brain: entradas de 100KB, vacías y nulas | ✅ sin crash |
+| Clon fresco + `npm install` + suite completa | ✅ **80/80 tests pasando (100%)** |
+| Plugin store: código alterado, fuera de índice, `require('child_process')`, `process.exit`, loop infinito | ✅ todos bloqueados (sandbox `vm` + SHA-256) |
+| Memoria RAG SQLite FTS5: inyección SQL y fuzzing de sintaxis | ✅ resistidos, datos intactos, 0 crashes |
+| Brain Anti-Spam: ráfagas de 9 msgs/2s, textos repetidos y flood | ✅ clasificados en BLOCK / SLOW con score |
+| Guardrails CAI: inyecciones con homóglifos, base64, hex y secuestro de roles | ✅ bloqueados con motivo detallado |
+| Command Injection: subshells `$()`, pipes, variables y Prototype Pollution | ✅ neutralizados antes de llegar a la Tool |
+| EventBus: prevención de tormentas recursivas en cascada | ✅ detenido automáticamente en `maxDepth` |
 | Licencia: todos los archivos con header SPDX + `LICENSE` + `NOTICE` | ✅ verificado por test en CI |
 
 ## 📜 Licencia (y qué pasa si alguien lo clona)
