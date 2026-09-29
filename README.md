@@ -66,6 +66,7 @@
 | 05 | 📘 **Evaluación TypeScript** (`experiments/typescript/`) | ¿Vale la pena TS en Shin-MD? Port tipado de la cola, corrido NATIVO en Node 22.18+ sin dependencias. Veredicto: sí, migración gradual ([TS-VERDICT](docs/TS-VERDICT.md)). | ✅ Evaluado |
 | 06 | 🏪 **Plugin store** (`experiments/store/`) | Índice confiable con SHA-256 + instalador en sandbox (sin `require`/`process`/red). Ataques probados y bloqueados: hash alterado, `child_process`, loop infinito. | ✅ Prototipo con 9 tests |
 | 07 | 🛡️ **Declarative Tools & CAI Guardrails** (`experiments/tools/`) | Registry declarativo de Tools (JSON Schema) para Agentes + defensas contra prompt injection, command injection (CVE-2025-67511), evasión de privilegios y exfiltración de secretos (metodología Alias Robotics CAI). | ✅ Prototipo con 8 tests |
+| 08 | ⚡ **Agent Pipeline (Brain + Memoria + Tools)** (`experiments/brain/agent-pipeline.js`) | Flujo B5 completo: Input Guardrails ➔ Anti-spam ➔ Contexto Memoria FTS5 ➔ Enrutador de Intenciones / Comandos ➔ Ejecución con Guardrails RBAC. | ✅ Prototipo con 6 tests |
 
 ## 🔄 Flujo de trabajo
 
