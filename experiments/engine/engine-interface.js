@@ -53,7 +53,23 @@ export function normalizeIncomingMessage(rawMsg) {
   if (typeof rawMsg.text === "string") {
     text = rawMsg.text;
   } else if (rawMsg.message) {
-    const m = rawMsg.message;
+    let m = rawMsg.message;
+    while (
+      m?.ephemeralMessage?.message ||
+      m?.viewOnceMessage?.message ||
+      m?.viewOnceMessageV2?.message ||
+      m?.viewOnceMessageV2Extension?.message ||
+      m?.documentWithCaptionMessage?.message ||
+      m?.editedMessage?.message
+    ) {
+      m =
+        m.ephemeralMessage?.message ||
+        m.viewOnceMessage?.message ||
+        m.viewOnceMessageV2?.message ||
+        m.viewOnceMessageV2Extension?.message ||
+        m.documentWithCaptionMessage?.message ||
+        m.editedMessage?.message;
+    }
     text = m.conversation ||
       m.extendedTextMessage?.text ||
       m.imageMessage?.caption ||
