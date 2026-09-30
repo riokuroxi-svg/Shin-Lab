@@ -115,6 +115,20 @@
 
 ---
 
+## 🏙️ Ciudad de Contribuciones en 3D (Isometric Contribution City)
+
+<div align="center">
+
+<p>
+  <i>Cada edificio representa días de commits, arquitectura y batallas ganadas en el código:</i>
+</p>
+
+<img src="https://github-profile-3d-contrib.vercel.app/api?username=riokuroxi-svg&theme=tokyonight" alt="3D Isometric Contribution City" width="100%"/>
+
+</div>
+
+---
+
 ## 👨‍💻 `whoami` // Acerca de Mí
 
 <table>
